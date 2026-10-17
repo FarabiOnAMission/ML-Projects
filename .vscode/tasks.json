@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SST-2: Open JupyterLab (.venv)",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "-m",
+        "jupyterlab",
+        "--notebook-dir=${workspaceFolder}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "JUPYTER_PATH": "${workspaceFolder}/.jupyter"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}
