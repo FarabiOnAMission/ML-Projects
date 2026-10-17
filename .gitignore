@@ -1,136 +1,24 @@
-# Python environments, bytecode, packaging and tools
-.venv/
-venv/
-env/
-ENV/
+# Python
+**/.venv/
+**/venv/
 __pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-*.egg
-.eggs/
-build/
-dist/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.tox/
-.nox/
-.coverage*
-htmlcov/
-coverage.xml
+*.pyc
 
-# Jupyter and machine-specific kernel registrations
+# Jupyter
 .ipynb_checkpoints/
-.jupyter/kernels/
-.jupyter/runtime/
-.ipython/
-profile_default/
 
-# Dataset contents and all generated results; retain the directory layout
-/data/**
-!/data/raw/
-!/data/processed/
-!/data/raw/.gitkeep
-!/data/processed/.gitkeep
-/outputs/**
-!/outputs/models/
-!/outputs/checkpoints/
-!/outputs/predictions/
-!/outputs/models/.gitkeep
-!/outputs/checkpoints/.gitkeep
-!/outputs/predictions/.gitkeep
-
-# Download caches, experiment logs and checkpoints anywhere in the project
-.cache/
-.huggingface/
-huggingface/
-hf_cache/
-datasets/
-wandb/
-mlruns/
-lightning_logs/
-runs/
-logs/
-checkpoints/
-checkpoint-*/
-*.pt
-*.pth
-*.ckpt
-*.safetensors
-*.onnx
-*.h5
-*.hdf5
-*.tflite
-*.pkl
-*.pickle
-*.joblib
-pytorch_model*.bin
-optimizer.bin
-training_args.bin
-*.arrow
-*.parquet
-*.feather
-*.npy
-*.npz
-*.zip
-*.tar
-*.tar.gz
-*.tgz
-*.gz
-
-# Secrets and local configuration (safe templates may be committed)
+# Secrets
 .env
 .env.*
-!.env.example
-!.env.template
-.kaggle/
-kaggle.json
-kaggle-*.json
-credentials/
-secrets/
-.credentials/
-.secrets/
-credentials*.json
-*credentials*.json
-*secret*.json
-*service-account*.json
-*service_account*.json
-token
-token.json
-token.txt
-*_token.txt
-*.pem
-*.key
-*.p12
-*.pfx
-.aws/
-.ssh/
-.netrc
-.pypirc
 
-# Temporary, operating-system and editor files
-tmp/
-temp/
-scratch/
-*.tmp
-*.temp
-*.log
-*.bak
-*.swp
-*.swo
-*~
+# Datasets
+**/data/raw/
+
+# Model checkpoints
+*.pt
+*.pth
+*.safetensors
+*.ckpt
+
+# macOS
 .DS_Store
-._*
-Thumbs.db
-Desktop.ini
-.idea/
-*.code-workspace
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/tasks.json
-
-# Preserve the output directory marker after the generic checkpoint rule above.
-!/outputs/checkpoints/
-!/outputs/checkpoints/.gitkeep
