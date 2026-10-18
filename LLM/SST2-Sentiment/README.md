@@ -1,179 +1,849 @@
 # SST-2 Sentiment Classification
 
-Develop a reproducible binary sentiment classifier for SST-2 movie-review sentences.
-The planned workflow is to explore the data, build a simple baseline, fine-tune a
-Transformer on Kaggle GPUs, and compare validation accuracy and error patterns.
-No datasets, pretrained models, or training runs are included in this setup.
+An end-to-end Natural Language Processing (NLP) project exploring sentiment classification using traditional machine learning and pretrained transformer models.
 
-## Existing local environment
+The project focuses on understanding the complete machine learning workflow, from exploratory data analysis and baseline development to BERT fine-tuning, evaluation, model serialization, and GPU-based training.
 
-Local development uses macOS, Python **3.14.6**, and the existing `.venv`.
-Do not recreate this environment or change its Python version. From the project root:
+The implementation uses **PyTorch, Hugging Face Transformers, scikit-learn, and Kaggle GPU resources**.
 
-```sh
-source .venv/bin/activate
-python test_environment.py
-python -m pip check
+## 1. Project Overview
+
+Sentiment analysis is a fundamental NLP task that involves identifying the sentiment expressed in a piece of text.
+
+This project uses the Stanford Sentiment Treebank 2 (SST-2) dataset to classify movie reviews into two categories:
+
+| Label | Sentiment |
+|-------|-----------|
+| 0 | Negative |
+| 1 | Positive |
+
+For example:
+
+**Input:**
+> A beautifully directed movie with outstanding performances.
+
+**Expected output:**
+```text
+Positive (1)
 ```
 
-The environment smoke test reports versions and accelerator availability; it does
-not fail when a GPU is unavailable. The setup check passed all six imports and
-`pip check`. This agent's sandbox reported `MPS built: True`, `MPS available: False`;
-the owner previously verified MPS successfully. Recheck in a normal local terminal
-before GPU work; no environment changes were made to address that discrepancy.
+### Objectives
 
-`requirements.txt` lists direct scientific, NLP, notebook, configuration, and
-Kaggle dependencies already installed, rather than every transitive dependency.
-Most constraints retain the observed minor release and allow patch updates.
-The macOS PyTorch constraint follows the installed release; Linux allows
-`torch>=2.5,<3` so a compatible Kaggle CUDA build can be retained. This Linux range
-has not been tested on Kaggle. Dependencies require Python **3.12 or newer** at
-this baseline; the existing local Python remains unchanged.
+- Explore and understand a real-world NLP classification dataset.
+- Analyze class distribution, text characteristics, and data quality.
+- Establish a baseline using TF-IDF and Logistic Regression.
+- Implement a group-aware validation strategy.
+- Fine-tune a pretrained BERT model for sentiment classification.
+- Compare traditional ML and transformer-based approaches.
+- Analyze classification errors and generalization behavior.
+- Train models using Kaggle GPUs.
+- Save trained models for future inference without retraining.
+- Develop a reproducible NLP experimentation workflow.
 
-Installation is only needed in a **separate fresh environment** or if dependencies
-are actually missing, using that environment's Python:
+---
 
-```sh
-python -m pip install -r requirements.txt
-python -m pip check
-```
+## 2. Dataset
 
-Do not run this install just to repeat setup in the working local `.venv`.
-This requirements file is a compatibility specification, not a cross-platform
-lockfile. Record the resolved versions for each future experiment.
+**Dataset:** Stanford Sentiment Treebank 2 (SST-2)
 
-## VS Code and notebooks
+**Source:** [Hugging Face — stanfordnlp/sst2](https://huggingface.co/datasets/stanfordnlp/sst2)
 
-Open the **project root folder** in VS Code. Workspace settings select
-`${workspaceFolder}/.venv/bin/python` and activate it in new terminals. The
-recommended extensions are Python and Jupyter; global VS Code settings are untouched.
-If VS Code has cached another interpreter, run **Python: Select Interpreter** and
-choose `.venv/bin/python`. In the notebook kernel picker, select
-**Python Environments → .venv/bin/python** (or **SST-2 (.venv)** when listed).
-The existing notebook is preserved exactly, including its `python3` kernel metadata.
+SST-2 contains movie-review text labeled according to its sentiment.
 
-To launch JupyterLab with that kernel reliably from the project root:
+### Dataset Statistics
 
-```sh
-JUPYTER_PATH="$PWD/.jupyter${JUPYTER_PATH:+:$JUPYTER_PATH}" .venv/bin/python -m jupyterlab
-```
+| Split | Examples |
+|-------|---------:|
+| Training | 67,349 |
+| Validation | 872 |
+| Test | 1,821 |
 
-Alternatively use **Terminal → Run Task → SST-2: Open JupyterLab (.venv)** in
-VS Code. The project-local `python3` kernelspec points explicitly to the existing
-virtual environment; it is ignored by Git because it contains an absolute local
-path. No system/user kernels or `.venv` files are modified. After moving the
-project, update that local kernelspec path or select the environment directly.
-On a fresh checkout, select the new environment directly in VS Code; for
-standalone Jupyter, register its kernel under the checkout with:
+The official test split does not provide publicly accessible sentiment labels.
 
-```sh
-python -m ipykernel install --prefix "$PWD/.jupyter" --name python3 --display-name "SST-2 (.venv)"
-```
+### Dataset Format
 
-The `--prefix` command writes under `.jupyter/share/jupyter/kernels`; use
-`JUPYTER_PATH="$PWD/.jupyter/share/jupyter" python -m jupyterlab` for that registration.
-The current checkout uses `.jupyter/kernels` and the earlier launch command.
+Each labeled example contains:
 
-Run the notebook's first cell to verify `sys.executable` ends in this project's
-`.venv/bin/python`. Setup verified the existing notebook by executing it in memory
-through this kernel; the saved notebook remained byte-for-byte unchanged. Imports
-reported an optional `IProgress`/`ipywidgets` warning; widget dependencies were not
-added to the working environment. A sandbox process-inspection restriction also
-produced a kernel-shutdown warning after successful execution.
-Keep reusable logic in `src/`, and use notebooks for exploration.
-Launch tools from the project root. In notebooks, add the repository root to
-`sys.path` if importing `src` from the `notebooks/` directory; there is no installed
-Python distribution or placeholder training implementation yet.
+| Column | Description |
+|--------|-------------|
+| `sentence` | Movie-review text |
+| `label` | Sentiment classification target |
 
-## Directory layout
+The dataset also provides an `idx` identifier.
+
+### Exploratory Data Analysis
+
+Our analysis identified several important characteristics:
+
+- The training dataset contains approximately 56% positive and 44% negative examples.
+- Training examples are generally short.
+- The official validation set contains substantially longer sentences on average.
+- Duplicate and related review phrases require careful handling during validation.
+- Classification difficulty varies with sentence length and linguistic structure.
+
+Approximate average sentence lengths:
+
+| Split | Mean word count |
+|-------|----------------:|
+| Training | 9.41 |
+| Official validation | 19.55 |
+
+These differences are important when interpreting model performance.
+
+---
+
+## 3. Project Structure
+
+The project is organized inside the main ML-Projects repository.
 
 ```text
-SST2-Sentiment/
-├── .git/                       # local repository metadata
-├── .gitignore
-├── .jupyter/kernels/python3/kernel.json  # ignored local kernel
-├── .venv/                      # existing environment, ignored
-├── .vscode/
-│   ├── extensions.json
-│   ├── settings.json
-│   └── tasks.json
-├── README.md
-├── requirements.txt
-├── configs/.gitkeep
-├── data/
-│   ├── raw/.gitkeep
-│   └── processed/.gitkeep
-├── notebooks/01_data_exploration.ipynb
-├── outputs/
-│   ├── models/.gitkeep
-│   ├── checkpoints/.gitkeep
-│   └── predictions/.gitkeep
-├── src/__init__.py
-├── tests/__init__.py
-└── test_environment.py
+ML-Projects/
+└── LLM/
+    └── SST2-Sentiment/
+        │
+        ├── .venv/
+        ├── .gitignore
+        ├── README.md
+        ├── requirements.txt
+        │
+        ├── configs/
+        │
+        ├── data/
+        │   ├── raw/
+        │   └── processed/
+        │
+        ├── notebooks/
+        │   └── 01_data_exploration.ipynb
+        │
+        ├── kaggle/
+        │   ├── bert_training.ipynb
+        │   ├── kernel-metadata.json
+        │   └── train.py
+        │
+        ├── outputs/
+        │
+        ├── src/
+        │
+        ├── tests/
+        │
+        └── test_environment.py
 ```
 
-Empty `.gitkeep` files preserve non-package directories in Git. `configs/`,
-notebooks, and artifact folders are not Python packages. `tests/` is ready for
-meaningful tests as reusable code is implemented; there are no invented test stubs.
+### Directory Descriptions
 
-## Development workflow
+| Directory | Purpose |
+|-----------|---------|
+| `configs/` | Experiment configurations |
+| `data/raw/` | Original datasets |
+| `data/processed/` | Processed datasets and intermediate data |
+| `notebooks/` | Exploratory analysis and experiments |
+| `kaggle/` | Kaggle training notebook and execution configuration |
+| `outputs/` | Generated metrics, predictions, and model artifacts |
+| `src/` | Reusable project code |
+| `tests/` | Project tests and verification |
 
-1. Activate `.venv`, verify the interpreter, and run the environment checks above.
-2. Continue exploration in the existing notebook. Download data only when starting
-   that work explicitly; put original data in `data/raw/` and derived data in
-   `data/processed/`. Keep split boundaries intact to avoid validation leakage.
-3. Add reusable preprocessing, evaluation, and later training code in `src/`.
-   Store non-secret experiment settings in `configs/`; include seeds, model name,
-   dataset version, hyperparameters, and output paths when training is implemented.
-4. Add behavioral tests in `tests/`. The existing `test_environment.py` remains at
-   the root and should be run directly; no new test runner was installed.
-5. Save weights, checkpoints, and predictions in their respective `outputs/`
-   subfolders. Keep secrets in environment variables or ignored local credential
-   files. Git ignore rules protect common secret filenames, not arbitrary inline
-   secrets; inspect file contents and notebook outputs before committing.
-6. Inspect `git status --short` and `git diff` before staging. Git is local only;
-   no initial commit, remote, upload, or push was performed by this setup.
+The `kaggle/train.py` file was used during initial remote-execution testing. The notebook is the primary implementation for BERT fine-tuning.
 
-## Future Kaggle GPU workflow
+Large datasets, virtual environments, and trained model checkpoints should not be committed to Git.
 
-This is a plan for later work; setup has not connected to Kaggle or started training.
+---
 
-1. Start a Kaggle Linux notebook with a GPU accelerator. Inspect its Python version
-   and existing package versions before installation. Do not copy `.venv` from
-   macOS. If Kaggle's Python is older than 3.12, this dependency baseline cannot
-   be installed unchanged: choose and validate an older compatible dependency
-   profile for that runtime rather than changing the local Python installation.
-2. Verify `torch.cuda.is_available()` and inspect `torch.__version__`,
-   `torch.version.cuda`, and the GPU driver. The requirements deliberately omit
-   explicit CUDA packages and wheel URLs: the correct build depends on Kaggle's
-   runtime. Retain a preinstalled CUDA-enabled PyTorch within `>=2.5,<3`.
-   If incompatible, select a build supported by that runtime before training;
-   do not blindly install the local macOS PyTorch version or use `--upgrade`.
-3. Transfer source, configs, requirements, and the intended notebook through your
-   chosen workflow. Preview dependency resolution with
-   `python -m pip install --dry-run -r requirements.txt` (requires network access)
-   and review any proposed changes to PyTorch/CUDA or Kaggle's existing libraries.
-   Install only when needed, restart the kernel after package changes, and run
-   `python -m pip check` and `python test_environment.py` in the repository root.
-   A shared Kaggle environment can have unrelated conflicts; resolve those in
-   that remote runtime before starting training.
-4. Use Kaggle's own notebook Python kernel, not the ignored macOS kernelspec.
-   Load future credentials through Kaggle Secrets or environment variables.
-   Attach datasets/models deliberately when ready; `/kaggle/input` is for inputs
-   and `/kaggle/working` for generated files. Configure output paths accordingly.
-5. After preprocessing and training code exists, first perform a small smoke run,
-   then train with a fixed seed and explicit settings. Enable mixed precision only
-   after checking GPU support. Save checkpoints/predictions under the working
-   directory and record the resolved dependency versions and source revision.
-6. Evaluate on the labeled validation split and report accuracy plus error analysis.
-   Check the dataset's label availability before treating the official test split
-   as an evaluation set. Keep model artifacts out of Git and export them separately.
+## 4. Environment Setup
 
-## Git exclusions
+### Requirements
 
-`.gitignore` excludes `.venv`, Python/tool caches, Jupyter checkpoints, downloaded
-data, model files, experiment logs, temporary files, credentials, and generated
-outputs. Only directory markers under `data/` and `outputs/` are retained.
-Source notebooks remain versionable; clear sensitive or bulky outputs before a
-future commit. The local Jupyter kernelspec is intentionally untracked.
+- Python
+- PyTorch
+- Hugging Face Transformers
+- Hugging Face Datasets
+- scikit-learn
+- pandas
+- NumPy
+- Jupyter
+- Matplotlib
+- tqdm
+
+Use a Python version compatible with the dependencies specified in `requirements.txt`.
+
+### Step 1: Navigate to the Project
+
+```bash
+cd /Users/farabi/Farabi/ML-Projects/LLM/SST2-Sentiment
+```
+
+### Step 2: Create a Virtual Environment
+
+For example, using Python 3.11:
+
+```bash
+python3.11 -m venv .venv
+```
+
+Activate the environment:
+
+```bash
+source .venv/bin/activate
+```
+
+### Step 3: Install Dependencies
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+### Step 4: Configure Jupyter
+
+```bash
+python -m pip install ipykernel
+
+python -m ipykernel install --user \
+    --name sst2-sentiment \
+    --display-name "Python (SST2-Sentiment)"
+```
+
+Inside VS Code, select:
+
+```text
+Python (SST2-Sentiment)
+```
+
+as the notebook kernel.
+
+### Step 5: Verify Hardware Acceleration
+
+```python
+import torch
+
+print("PyTorch:", torch.__version__)
+print("CUDA available:", torch.cuda.is_available())
+print("MPS available:", torch.backends.mps.is_available())
+```
+
+The training implementation supports CUDA, Apple Silicon MPS, and CPU execution.
+
+---
+
+## 5. Data Preparation and Validation
+
+To evaluate models consistently, we implemented a group-aware validation strategy using:
+
+```python
+StratifiedGroupKFold(
+    n_splits=5,
+    shuffle=True,
+    random_state=42
+)
+```
+
+Sentences were normalized by:
+
+- Converting text to lowercase.
+- Removing leading and trailing whitespace.
+- Normalizing repeated whitespace.
+
+Normalized sentences were used as grouping identifiers.
+
+This helps prevent identical normalized sentences from appearing in both training and validation folds.
+
+### Internal Validation Split
+
+The initial internal split contains:
+
+| Subset | Examples |
+|--------|---------:|
+| Training | 53,879 |
+| Validation | 13,470 |
+
+Group-aware splitting reduces exact-duplicate leakage but does not eliminate every form of related-text or substring overlap.
+
+For model comparison, the same validation protocol should be maintained.
+
+---
+
+## 6. Baseline Model: TF-IDF + Logistic Regression
+
+Our initial approach used a traditional machine learning pipeline:
+
+```text
+Input Sentence
+      ↓
+Text Vectorization
+      ↓
+TF-IDF Features
+      ↓
+Logistic Regression
+      ↓
+Sentiment Prediction
+```
+
+### Model Configuration
+
+**Feature Extraction:** TF-IDF
+
+**N-gram range:** `(1, 2)`
+
+**Classifier:** Logistic Regression
+
+**Regularization parameter:** `C = 10`
+
+The final baseline used a token pattern that better preserved words containing apostrophes.
+
+### Baseline Results
+
+#### Five-Fold Internal Cross-Validation
+
+| Metric | Result |
+|--------|-------:|
+| Mean Accuracy | 92.63% |
+| Accuracy Standard Deviation | 0.16 percentage points |
+| Mean Macro F1 | 0.9253 |
+
+The first internal fold achieved approximately 92.81% accuracy.
+
+#### Official Validation
+
+After fitting the baseline on the full official training split:
+
+| Metric | Result |
+|--------|-------:|
+| Accuracy | 81.77% |
+| Macro F1 | 0.8168 |
+
+### Analysis
+
+The substantial difference between internal cross-validation and official validation performance motivated further investigation.
+
+Our analysis found:
+
+- The official validation set contains longer sentences.
+- Negative sentiment examples were particularly challenging at longer lengths.
+- Related phrases and sentence fragments may make internal validation easier.
+- Differences in sample characteristics can affect generalization.
+
+These observations suggest limitations in the baseline's ability to generalize, although they do not establish a single definitive cause of the performance gap.
+
+The internal and official validation scores represent different evaluation protocols and should not be treated as directly interchangeable.
+
+---
+
+## 7. Transformer Model: BERT
+
+To improve contextual understanding, we implemented a pretrained transformer-based sentiment classifier.
+
+### Model
+
+**Checkpoint:** `bert-base-uncased`
+
+**Architecture:** BERT for Sequence Classification
+
+**Framework:** PyTorch + Hugging Face Transformers
+
+### BERT Base Configuration
+
+| Component | Configuration |
+|-----------|--------------|
+| Transformer layers | 12 |
+| Hidden dimension | 768 |
+| Attention heads | 12 |
+| Classification classes | 2 |
+| Maximum input length used | 128 tokens |
+
+### Architecture
+
+```text
+Movie Review
+     ↓
+BERT Tokenizer
+     ↓
+Input IDs + Attention Masks
+     ↓
+Token and Position Embeddings
+     ↓
+Pretrained BERT Encoder
+     ↓
+[CLS] Representation
+     ↓
+Classification Head
+     ↓
+Negative / Positive Logits
+```
+
+The model uses pretrained BERT parameters together with a task-specific classification head.
+
+During fine-tuning, the model parameters are updated using labeled SST-2 examples.
+
+---
+
+## 8. BERT Data Pipeline
+
+The training notebook implements the following pipeline:
+
+```text
+SST-2 Dataset
+      ↓
+Group-Aware Train/Validation Split
+      ↓
+Hugging Face Dataset
+      ↓
+BERT Tokenization
+      ↓
+Dynamic Padding
+      ↓
+PyTorch DataLoader
+      ↓
+BERT Sequence Classifier
+```
+
+### Tokenization
+
+```python
+tokenizer = AutoTokenizer.from_pretrained(
+    "bert-base-uncased"
+)
+```
+
+Tokenization uses:
+
+```python
+truncation=True
+max_length=128
+padding=False
+```
+
+Padding is applied dynamically at the batch level using:
+
+```python
+DataCollatorWithPadding
+```
+
+This reduces unnecessary padding compared with padding every example to a fixed sequence length.
+
+### DataLoader Configuration
+
+```python
+batch_size = 16
+```
+
+Training batches are shuffled, while validation batches retain a consistent ordering.
+
+### Input Dimensions
+
+For a batch containing 16 examples:
+
+```text
+input_ids:      (16, sequence_length)
+attention_mask: (16, sequence_length)
+labels:         (16,)
+```
+
+The sequence length depends on the longest tokenized input within the batch.
+
+BERT produces classification logits with shape:
+
+```text
+(16, 2)
+```
+
+---
+
+## 9. BERT Fine-Tuning Configuration
+
+Our initial BERT experiment was configured with:
+
+| Hyperparameter | Value |
+|----------------|-------|
+| Model | bert-base-uncased |
+| Epochs | 2 |
+| Batch size | 16 |
+| Learning rate | 2e-5 |
+| Optimizer | AdamW |
+| Weight decay | 0.01 |
+| Maximum sequence length | 128 |
+| Random seed | 42 |
+| Model-selection metric | Validation Macro F1 |
+
+### Training Procedure
+
+For each training batch:
+
+1. Move input tensors to the selected device.
+2. Perform forward propagation.
+3. Calculate cross-entropy loss.
+4. Calculate gradients through backpropagation.
+5. Update model parameters using AdamW.
+
+After each epoch:
+
+1. Evaluate on the internal validation set.
+2. Calculate validation loss.
+3. Calculate accuracy.
+4. Calculate Macro F1.
+5. Save the model if validation Macro F1 improves.
+
+### Local Sanity Checks
+
+Before full training, we tested:
+
+- BERT model initialization.
+- Forward propagation.
+- Logit dimensions.
+- Classification loss.
+- Gradient computation.
+- Optimizer updates.
+- Small-batch training.
+
+These tests verified the basic model and training operations on an Apple Silicon MPS device.
+
+A successful small-batch test does not by itself establish final model performance.
+
+---
+
+## 10. Training on Kaggle GPU
+
+Because full transformer fine-tuning is computationally expensive, the project uses Kaggle for remote GPU execution.
+
+The intended workflow is:
+
+```text
+Local Development
+       ↓
+VS Code + Jupyter
+       ↓
+Kaggle CLI
+       ↓
+Remote GPU Training
+       ↓
+Model Evaluation
+       ↓
+Save Best Checkpoint
+       ↓
+Download Saved Model
+```
+
+### Install Kaggle CLI
+
+From the activated project environment:
+
+```bash
+python -m pip install kaggle
+```
+
+Verify:
+
+```bash
+kaggle --version
+```
+
+Authenticate:
+
+```bash
+kaggle auth login
+```
+
+Check quota:
+
+```bash
+kaggle quota
+```
+
+### Kaggle Configuration
+
+The `kaggle/kernel-metadata.json` file configures remote execution.
+
+The intended accelerator is:
+
+```json
+{
+  "enable_gpu": true,
+  "machine_shape": "NvidiaTeslaT4"
+}
+```
+
+This requests Kaggle's Tesla T4 ×2 accelerator environment.
+
+The training implementation uses a single CUDA device by default.
+
+### Submit Training
+
+From the project root:
+
+```bash
+cd kaggle
+```
+
+Submit the notebook:
+
+```bash
+kaggle kernels push -p .
+```
+
+Check execution status:
+
+```bash
+kaggle kernels status code51/sst2-bert-training
+```
+
+Possible statuses include:
+
+```text
+QUEUED
+RUNNING
+COMPLETE
+ERROR
+```
+
+A queued job has not yet started executing.
+
+GPU quota availability does not guarantee immediate resource allocation.
+
+Training should be considered successful only after confirming that the remote execution completed and the expected artifacts were saved.
+
+---
+
+## 11. Model Saving and Retrieval
+
+The BERT training notebook is configured to save the best-performing model using:
+
+```python
+model.save_pretrained(
+    "/kaggle/working/bert_sst2_best"
+)
+
+tokenizer.save_pretrained(
+    "/kaggle/working/bert_sst2_best"
+)
+```
+
+A successful model export should contain files such as:
+
+```text
+bert_sst2_best/
+├── config.json
+├── model.safetensors
+├── tokenizer.json
+├── tokenizer_config.json
+└── vocab.txt
+```
+
+### Download from Kaggle
+
+From the project root:
+
+```bash
+kaggle kernels output \
+    code51/sst2-bert-training \
+    -p outputs/models/
+```
+
+Verify that the downloaded files exist and contain valid model data.
+
+The exact output directory should be checked after downloading.
+
+### Important
+
+The saved model can be used for inference without repeating training.
+
+An inference-ready model export is not necessarily a complete resumable training checkpoint containing optimizer and scheduler state.
+
+---
+
+## 12. Inference
+
+The intended inference workflow is:
+
+```text
+New Sentence
+      ↓
+Load Saved Tokenizer
+      ↓
+Tokenization
+      ↓
+Load Fine-Tuned BERT
+      ↓
+Forward Pass
+      ↓
+Classification Logits
+      ↓
+Predicted Sentiment
+```
+
+### Example
+
+Once the trained checkpoint has been retrieved and verified:
+
+```python
+import torch
+
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification
+)
+
+MODEL_PATH = "outputs/models/bert_sst2_best"
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_PATH
+)
+
+model.eval()
+
+sentence = "The movie was absolutely fantastic."
+
+inputs = tokenizer(
+    sentence,
+    return_tensors="pt",
+    truncation=True,
+    max_length=128
+)
+
+with torch.no_grad():
+    outputs = model(**inputs)
+
+prediction = outputs.logits.argmax(dim=-1).item()
+
+label_map = {
+    0: "Negative",
+    1: "Positive"
+}
+
+print("Predicted sentiment:", label_map[prediction])
+```
+
+This example assumes the checkpoint has already been saved and downloaded successfully.
+
+The example performs inference only; it does not retrain the model.
+
+---
+
+## 13. Evaluation and Model Comparison
+
+The primary metrics used in this project are:
+
+- Accuracy
+- Macro F1
+
+Additional analysis may include:
+
+- Confusion matrices.
+- Precision and recall.
+- Class-specific F1.
+- Sentence-length performance.
+- Error inspection.
+
+### Experiment Results
+
+| Model | Evaluation Protocol | Accuracy | Macro F1 |
+|-------|---------------------|---------:|---------:|
+| TF-IDF + Logistic Regression | 5-fold internal CV | 92.63% | 0.9253 |
+| TF-IDF + Logistic Regression | Official validation | 81.77% | 0.8168 |
+| BERT Base | Internal validation | 94.88% | 0.9488 |
+
+The official validation baseline was trained on the full official training split. The cross-validation result was calculated using internal folds.
+
+Consequently, these results should be interpreted according to their respective evaluation protocols.
+
+The BERT result will be added after a successful end-to-end training and evaluation run.
+
+---
+
+## 14. Future Improvements
+
+Potential extensions include:
+
+- Fine-tuning RoBERTa and DeBERTa.
+- Experimenting with alternative learning rates.
+- Learning-rate warmup and decay.
+- Gradient clipping.
+- Early stopping.
+- Additional random seeds.
+- More detailed error analysis.
+- Comparing different tokenization strategies.
+- Evaluating robustness to longer and more complex sentences.
+- Comparing saved models on identical validation examples.
+- Experimenting with probability-based ensembles.
+
+Future changes should be evaluated systematically rather than assuming that greater model complexity will produce better results.
+
+---
+
+## 15. Project Status
+
+| Component | Status |
+|-----------|--------|
+| Dataset loading | Completed |
+| Exploratory data analysis | Completed |
+| Group-aware validation | Completed |
+| TF-IDF + Logistic Regression baseline | Completed |
+| Baseline cross-validation | Completed |
+| Official validation analysis | Completed |
+| BERT tokenization pipeline | Implemented |
+| Dynamic padding and DataLoaders | Implemented |
+| BERT forward-pass testing | Completed |
+| BERT backpropagation testing | Completed |
+| Training and evaluation functions | Implemented |
+| Best-model saving logic | Implemented |
+| Full Kaggle GPU fine-tuning | Not yet verified |
+| Fine-tuned BERT metrics | Not yet verified |
+| Saved BERT model retrieval | Not yet verified |
+| Independent saved-model inference | Not yet verified |
+
+The project currently contains a completed traditional machine learning baseline and an implemented BERT fine-tuning pipeline.
+
+Final transformer results and inference verification will be documented after successful GPU execution and artifact retrieval.
+
+---
+
+## 16. Technologies Used
+
+**Language**
+- Python
+
+**Machine Learning**
+- scikit-learn
+- PyTorch
+
+**NLP**
+- Hugging Face Transformers
+- Hugging Face Datasets
+- BERT
+
+**Data Analysis**
+- pandas
+- NumPy
+- Matplotlib
+
+**Development**
+- VS Code
+- Jupyter Notebook
+- Git
+- GitHub
+
+**Compute**
+- Apple Silicon MPS
+- Kaggle GPU
+
+---
+
+## 17. References
+
+1. [Stanford Sentiment Treebank](https://nlp.stanford.edu/sentiment/)
+2. [SST-2 Dataset — Hugging Face](https://huggingface.co/datasets/stanfordnlp/sst2)
+3. [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805)
+4. [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers)
+5. [PyTorch Documentation](https://pytorch.org/docs/stable/index.html)
+6. [Kaggle API and CLI](https://github.com/Kaggle/kaggle-cli)
+
+---
+
+## 18. Acknowledgment
+
+This project was developed as a practical study of machine learning
+experimentation, NLP classification, transformer fine-tuning, and
+reproducible model development.
+
+The implementation draws on concepts from *Build a Large Language
+Model (From Scratch)* by Sebastian Raschka, alongside the PyTorch,
+Hugging Face, and scikit-learn ecosystems.
