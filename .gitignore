@@ -20,5 +20,12 @@ __pycache__/
 *.safetensors
 *.ckpt
 
+# Downloaded SST-2 checkpoints
+LLM/SST2-Sentiment/kaggle/kaggle-output/
+LLM/SST2-Sentiment/kaggle/kaggle-output-retry/
+
+# Kaggle credentials
+kaggle.json
+
 # macOS
 .DS_Store

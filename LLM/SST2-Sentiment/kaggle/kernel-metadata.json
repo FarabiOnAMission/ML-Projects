@@ -1,0 +1,15 @@
+{
+  "id": "code51/sst2-bert-training",
+  "title": "SST2 BERT Training",
+  "code_file": "02_bert_training.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

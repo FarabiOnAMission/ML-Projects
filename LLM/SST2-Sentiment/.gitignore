@@ -134,3 +134,10 @@ Desktop.ini
 # Preserve the output directory marker after the generic checkpoint rule above.
 !/outputs/checkpoints/
 !/outputs/checkpoints/.gitkeep
+
+# Downloaded Kaggle outputs
+kaggle/kaggle-output/
+kaggle/kaggle-output-retry/
+
+# Kaggle credentials
+kaggle.json
