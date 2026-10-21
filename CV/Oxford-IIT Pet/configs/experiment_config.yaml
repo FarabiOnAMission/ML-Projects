@@ -1,0 +1,16 @@
+# Initial planning defaults only; no experiment has run.
+project_name: Oxford-IIT Pet
+dataset:
+  name: Oxford-IIIT Pet
+  root: data/raw
+  task: null  # Decide classification or segmentation during exploration.
+  download: false
+seed: 42
+device: auto  # CUDA, then Apple MPS, then CPU.
+paths:
+  processed: data/processed
+  models: outputs/models
+  checkpoints: outputs/checkpoints
+  metrics: outputs/metrics
+  figures: outputs/figures
+  predictions: outputs/predictions

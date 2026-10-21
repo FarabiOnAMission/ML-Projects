@@ -1,0 +1,63 @@
+[{"stream_name":"stderr","time":7.886909322,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":7.886966112,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":7.886979277,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":7.886983082,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":8.519855445,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":8.519885276,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":8.519890068,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":8.519895589,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":17.570049387,"data":"Python: /usr/bin/python3\n"}
+,{"stream_name":"stdout","time":17.570075952,"data":"PyTorch: 2.11.0+cu128\n"}
+,{"stream_name":"stdout","time":17.570078984,"data":"Device: cuda\n"}
+,{"stream_name":"stderr","time":21.650885565,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stderr","time":21.650920996,"data":"\n"}
+,{"stream_name":"stderr","time":21.650924328,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stdout","time":35.677612855,"data":"DatasetDict({\n"}
+,{"stream_name":"stdout","time":35.67765045,"data":"    train: Dataset({\n"}
+,{"stream_name":"stdout","time":35.677654267,"data":"        features: ['image', 'label', 'image_id', 'label_cat_dog'],\n"}
+,{"stream_name":"stdout","time":35.67767082,"data":"        num_rows: 3680\n"}
+,{"stream_name":"stdout","time":35.677674834,"data":"    })\n"}
+,{"stream_name":"stdout","time":35.677678625,"data":"    test: Dataset({\n"}
+,{"stream_name":"stdout","time":35.677682392,"data":"        features: ['image', 'label', 'image_id', 'label_cat_dog'],\n"}
+,{"stream_name":"stdout","time":35.677686323,"data":"        num_rows: 3669\n"}
+,{"stream_name":"stdout","time":35.677690271,"data":"    })\n"}
+,{"stream_name":"stdout","time":35.677694293,"data":"})\n"}
+,{"stream_name":"stdout","time":35.677697677,"data":"\u003cbuilt-in method keys of DatasetDict object at 0x7ac918ea1630\u003e\n"}
+,{"stream_name":"stdout","time":35.677704784,"data":"{'image': Image(mode=None, decode=True), 'label': ClassLabel(names=['abyssinian', 'american_bulldog', 'american_pit_bull_terrier', 'basset_hound', 'beagle', 'bengal', 'birman', 'bombay', 'boxer', 'british_shorthair', 'chihuahua', 'egyptian_mau', 'english_cocker_spaniel', 'english_setter', 'german_shorthaired', 'great_pyrenees', 'havanese', 'japanese_chin', 'keeshond', 'leonberger', 'maine_coon', 'miniature_pinscher', 'newfoundland', 'persian', 'pomeranian', 'pug', 'ragdoll', 'russian_blue', 'saint_bernard', 'samoyed', 'scottish_terrier', 'shiba_inu', 'siamese', 'sphynx', 'staffordshire_bull_terrier', 'wheaten_terrier', 'yorkshire_terrier']), 'image_id': Value('string'), 'label_cat_dog': ClassLabel(names=['cat', 'dog'])}\n"}
+,{"stream_name":"stdout","time":35.741419301,"data":"dict_keys(['image', 'label', 'image_id', 'label_cat_dog'])\n"}
+,{"stream_name":"stdout","time":36.100522682,"data":"Training: 2944\n"}
+,{"stream_name":"stdout","time":36.100545889,"data":"Validation: 736\n"}
+,{"stream_name":"stdout","time":36.10056309,"data":"Testing: 3669\n"}
+,{"stream_name":"stdout","time":42.518711223,"data":"2944\n"}
+,{"stream_name":"stdout","time":42.518760455,"data":"736\n"}
+,{"stream_name":"stdout","time":42.518767526,"data":"3669\n"}
+,{"stream_name":"stdout","time":42.996266565,"data":"Images shape: torch.Size([32, 3, 224, 224])\n"}
+,{"stream_name":"stdout","time":42.996295282,"data":"Labels shape: torch.Size([32])\n"}
+,{"stream_name":"stdout","time":42.996300381,"data":"Image dtype: torch.float32\n"}
+,{"stream_name":"stdout","time":42.99630429,"data":"Label dtype: torch.int64\n"}
+,{"stream_name":"stdout","time":42.996319986,"data":"First 5 labels: tensor([26, 29, 22, 28, 10])\n"}
+,{"stream_name":"stdout","time":46.119276822,"data":"Found checkpoints: [PosixPath('/kaggle/input/datasets/code51/resnet18-pet-checkpoint/resnet18_head_only_best.pth')]\n"}
+,{"stream_name":"stdout","time":50.592714053,"data":"Checkpoint loaded successfully!\n"}
+,{"stream_name":"stdout","time":50.592756539,"data":"Classifier: Linear(in_features=512, out_features=37, bias=True)\n"}
+,{"stream_name":"stdout","time":50.607841754,"data":"Total parameters: 11,195,493\n"}
+,{"stream_name":"stdout","time":50.607870811,"data":"Trainable parameters: 8,412,709\n"}
+,{"stream_name":"stdout","time":50.607877041,"data":"Frozen parameters: 2,782,784\n"}
+,{"stream_name":"stdout","time":76.201241771,"data":"Epoch [1/5] | Train Loss: 0.3223 | Train Acc: 93.82% | Val Loss: 0.3338 | Val Acc: 91.85%\n"}
+,{"stream_name":"stdout","time":99.627628796,"data":"Epoch [2/5] | Train Loss: 0.2695 | Train Acc: 94.23% | Val Loss: 0.3006 | Val Acc: 91.85%\n"}
+,{"stream_name":"stdout","time":122.955819121,"data":"Epoch [3/5] | Train Loss: 0.2393 | Train Acc: 94.16% | Val Loss: 0.2821 | Val Acc: 92.39%\n"}
+,{"stream_name":"stdout","time":146.133141244,"data":"Epoch [4/5] | Train Loss: 0.2171 | Train Acc: 94.36% | Val Loss: 0.2714 | Val Acc: 92.12%\n"}
+,{"stream_name":"stdout","time":169.247825243,"data":"Epoch [5/5] | Train Loss: 0.1964 | Train Acc: 94.84% | Val Loss: 0.2646 | Val Acc: 91.98%\n"}
+,{"stream_name":"stdout","time":169.247877722,"data":"\n"}
+,{"stream_name":"stdout","time":169.247886011,"data":"Best Validation Accuracy: 92.39%\n"}
+,{"stream_name":"stdout","time":169.454115471,"data":"Saved checkpoint: /kaggle/working/resnet18_layer4_best.pth\n"}
+,{"stream_name":"stderr","time":175.264166326,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":175.264200998,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":175.429970626,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":175.430005751,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":176.161948195,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":176.266208825,"data":"[NbConvertApp] Writing 185189 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":178.627415178,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":179.181302998,"data":"[NbConvertApp] Support files will be in __results___files/\n"}
+,{"stream_name":"stderr","time":179.181352353,"data":"[NbConvertApp] Making directory __results___files\n"}
+,{"stream_name":"stderr","time":179.181726664,"data":"[NbConvertApp] Writing 411723 bytes to __results__.html\n"}
+]

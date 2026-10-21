@@ -1,0 +1,17 @@
+
+{
+  "id": "code51/oxford-pet-resnet18-finetuning",
+  "title": "Oxford Pet ResNet18 Finetuning",
+  "code_file": "01_data_exploration.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "enable_internet": true,
+  "dataset_sources": [
+    "code51/resnet18-pet-checkpoint"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}
