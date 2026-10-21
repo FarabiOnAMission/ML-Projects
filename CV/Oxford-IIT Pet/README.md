@@ -1,97 +1,101 @@
-# Oxford-IIT Pet
+# Oxford-IIIT Pet Image Classification
 
-Notebook-first computer vision project using the **Oxford-IIIT Pet** dataset.
-The folder name follows the requested `CV/Oxford-IIT Pet` naming.
+A computer vision project focused on exploring image classification using Convolutional Neural Networks (CNNs), transfer learning, and fine-tuning with PyTorch.
 
-## Status and scope
+The project uses the **Oxford-IIIT Pet Dataset**, containing images of 37 cat and dog breeds. The goal is to build, train, evaluate, and compare different deep learning architectures for multi-class image classification.
 
-Initial environment and workspace setup only. No dataset, pretrained weights,
-training runs, metrics or model artifacts have been downloaded or produced.
-Task selection is pending: the dataset supports breed classification and pixel
-segmentation. Input is a pet image; the output and evaluation metrics will be
-chosen during exploration. Classification would use accuracy and macro F1;
-segmentation would use IoU/Dice. These are planning options, not results.
+## Project Objectives
 
-Dataset: https://www.robots.ox.ac.uk/~vgg/data/pets/
-Torchvision loader: https://docs.pytorch.org/vision/stable/generated/torchvision.datasets.OxfordIIITPet.html
-Review source usage terms and annotations before downloading.
+- Understand and implement CNN architectures from scratch.
+- Explore transfer learning using pretrained models.
+- Experiment with different fine-tuning strategies.
+- Evaluate models using accuracy, precision, recall, F1 score, and confusion matrices.
+- Develop a reproducible training workflow using PyTorch and Kaggle GPUs.
+- Extend the experiments to more advanced architectures, including Vision Transformers (ViTs).
 
-## Structure
+## Dataset
+
+**Oxford-IIIT Pet Dataset**
+
+- **Classes:** 37 cat and dog breeds
+- **Training images:** 3,680 (before validation split)
+- **Test images:** 3,669
+- **Task:** Multi-class image classification
+
+Dataset source: [Hugging Face — Oxford-IIIT Pet](https://huggingface.co/datasets/timm/oxford-iiit-pet)
+
+## Models and Experiments
+
+The project currently includes experiments with:
+
+1. **Custom CNN:** A lightweight convolutional network trained from scratch.
+2. **ResNet18 (Transfer Learning):** An ImageNet-pretrained ResNet18 with a newly trained classification head.
+3. **ResNet18 (Partial Fine-Tuning):** Fine-tuning the final residual block and classification head while preserving pretrained BatchNorm running statistics.
+
+### Current Results
+
+| Model | Validation Accuracy | Test Accuracy |
+|---|---:|---:|
+| Custom CNN | 10.19% | — |
+| ResNet18 (Head Only) | 92.26% | 89.53% |
+| ResNet18 (Partial Fine-Tuning) | **92.39%** | **89.86%** |
+
+The best-performing model currently achieves a **test macro F1 score of 0.8973**.
+
+## Project Structure
 
 ```text
-Oxford-IIT Pet/
-├── .venv/                         # Isolated local Python environment
-├── .vscode/                       # Interpreter and notebook support
-├── .jupyter/                      # Local kernel, generated and ignored
-├── configs/experiment_config.yaml # Initial paths and seed; task undecided
-├── data/{raw,processed}/
-├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_model_training.ipynb
-│   ├── 03_model_inference.ipynb
-│   └── 04_error_analysis.ipynb
-├── kaggle/README.md               # Future remote execution workspace
-├── src/                           # Future reusable code
-├── outputs/{models,checkpoints,metrics,figures,predictions}/
-├── requirements.txt               # Pinned direct dependencies
-├── requirements-macos.lock.txt    # Full local dependency snapshot
-└── environment.json               # Verified local environment details
+Oxford-IIIT Pet/
+├── configs/          # Experiment configurations
+├── data/             # Dataset-related files
+├── kaggle/           # Kaggle training and deployment setup
+├── notebooks/        # Exploratory analysis and experiments
+├── outputs/          # Model checkpoints and experiment outputs
+├── src/              # Reusable source code
+├── requirements.txt  # Python dependencies
+└── README.md
 ```
 
-## Local use
+## Technologies
 
-Open this folder in VS Code, then use its terminal:
+- Python
+- PyTorch
+- Torchvision
+- timm
+- Hugging Face Datasets
+- Scikit-learn
+- Pandas, NumPy, and Matplotlib
+- Kaggle GPU
+
+## Getting Started
+
+Clone the repository:
 
 ```bash
-cd "/Users/farabi/Farabi/ML-Projects/CV/Oxford-IIT Pet"
-source .venv/bin/activate
-export JUPYTER_PATH="$PWD/.jupyter/share/jupyter${JUPYTER_PATH:+:$JUPYTER_PATH}"
-python -m jupyterlab
+git clone https://github.com/FarabiOnAMission/ML-Projects.git
+cd ML-Projects/"Oxford-IIIT Pet"
 ```
 
-In a VS Code notebook, use **Select Kernel → Python Environments → .venv/bin/python**,
-or choose **Python (Oxford-IIT Pet)** if listed. The local kernel is stored inside
-this project; no global environment or global kernel registration is needed.
-
-The setup uses the installed Python 3.14.6 after verifying native binary wheels.
-To recreate it on a compatible Apple Silicon Mac with Python 3.14:
+Install dependencies:
 
 ```bash
-python3.14 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements-macos.lock.txt
-python -m ipykernel install --prefix "$PWD/.jupyter" --name oxford-iit-pet --display-name "Python (Oxford-IIT Pet)"
+pip install -r requirements.txt
 ```
 
-The lockfile describes macOS only. Create a fresh Linux environment for Kaggle
-and check its installed CUDA/PyTorch versions before changing dependencies.
-Never copy `.venv` between operating systems. Run `deactivate` to leave the venv.
+Open the notebooks in the `notebooks/` directory to explore the dataset, preprocessing pipeline, and model experiments.
 
-## Dependencies
+GPU training experiments are configured through the Kaggle CLI. Some experiments require separately stored model checkpoints.
 
-PyTorch + torchvision provide models, datasets and image transforms; timm adds
-vision model options. Hugging Face `datasets` provides `load_dataset` for dataset loading. Pillow handles images; NumPy, pandas and scikit-learn support
-analysis and evaluation; Matplotlib and seaborn provide plots. JupyterLab,
-ipykernel and ipywidgets support notebooks. tqdm, PyYAML and python-dotenv cover
-progress/configuration; Kaggle CLI is installed for later remote work.
+## Future Work
 
-## Next steps
+- Per-class performance evaluation and confusion matrix analysis.
+- Error analysis and visualization of misclassified images.
+- Experiments with stronger CNN backbones.
+- Vision Transformer (ViT) implementation and fine-tuning.
+- Comparison between CNN-based and Transformer-based image classification.
 
-1. Explore the dataset and choose classification or segmentation.
-2. Establish validation and test handling, then a simple baseline.
-3. Develop training interactively, saving models and preprocessing together.
-4. Load saved artifacts for inference and error analysis.
+## Project Status
 
-This project belongs to the parent `ML-Projects` repository. Data, environments,
-credentials and large model artifacts are excluded. No nested Git repository,
-commit or push is part of initialization.
+**In Progress**
 
-## Initialization verification
-
-Package consistency, core imports, torchvision image transforms and NMS, notebook
-format/syntax, and the exploration notebook setup cell passed. Jupyter discovers
-the project kernel with the documented `JUPYTER_PATH`. PyTorch was built with MPS
-support, but MPS was unavailable to the setup process; CPU was selected. Recheck
-GPU availability in VS Code on the host before choosing training hardware.
-Dataset loading and training remain unverified because this step initializes only
-the environment and structure. See `environment.json` for installed versions.
+This project is part of my ongoing exploration of deep learning and computer vision, with an emphasis on understanding model architectures, training strategies, and practical experimentation.
